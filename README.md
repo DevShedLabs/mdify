@@ -7,6 +7,13 @@ non-content chrome (nav, header, footer, scripts, styles) and PHP code, and
 writes clean Markdown files to an output directory that mirrors the input
 layout — handy for feeding a site's content to an LLM.
 
+## Install
+
+```sh
+go install github.com/DevShedLabs/mdify@latest
+```
+
+
 ## Usage
 
 ```sh

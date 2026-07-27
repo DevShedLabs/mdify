@@ -1,4 +1,4 @@
-module mdify
+module github.com/DevShedLabs/mdify
 
 go 1.26.3
 
