@@ -13,6 +13,12 @@ layout — handy for feeding a site's content to an LLM.
 go install github.com/DevShedLabs/mdify@latest
 ```
 
+## Updating
+```sh 
+mdify --version
+
+mdify update 
+```
 
 ## Usage
 
@@ -34,6 +40,14 @@ Flags:
 - `-rules-file` JSON file of `[{"pattern": "...", "replace": "..."}, ...]`
   rules, applied before `-replace` flags
 - `-v` verbose per-file output
+- `-version` print the installed version and check the Go module proxy for
+  a newer release
+
+Commands:
+
+- `mdify update` reinstall the latest version (runs
+  `go install github.com/DevShedLabs/mdify@latest`; requires a Go toolchain
+  on `PATH`, same as the original install)
 
 ## Notes
 

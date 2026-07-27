@@ -12,8 +12,13 @@ import (
 	"github.com/DevShedLabs/mdify/internal/htmlmd"
 	"github.com/DevShedLabs/mdify/internal/phpstrip"
 	"github.com/DevShedLabs/mdify/internal/rewrite"
+	"github.com/DevShedLabs/mdify/internal/selfupdate"
 	"github.com/DevShedLabs/mdify/internal/walker"
 )
+
+// modulePath is mdify's module path, used to check for and install updates
+// via the Go module proxy / `go install`. Keep in sync with go.mod.
+const modulePath = "github.com/DevShedLabs/mdify"
 
 // repeatableFlag collects every occurrence of a flag passed multiple times,
 // e.g. -replace 'a=>b' -replace 'c=>d'.
@@ -26,6 +31,16 @@ func (r *repeatableFlag) Set(v string) error {
 }
 
 func main() {
+	// "update" is handled as a subcommand, ahead of flag parsing, since it
+	// takes no input directory.
+	if len(os.Args) > 1 && os.Args[1] == "update" {
+		if err := selfupdate.Update(modulePath); err != nil {
+			fmt.Fprintf(os.Stderr, "mdify: update failed: %v\n", err)
+			os.Exit(1)
+		}
+		return
+	}
+
 	var (
 		outDir         string
 		extList        string
@@ -33,6 +48,7 @@ func main() {
 		noIconFilters  bool
 		rulesFile      string
 		verbose        bool
+		showVersion    bool
 	)
 	var replaceSpecs repeatableFlag
 
@@ -43,11 +59,17 @@ func main() {
 	flag.Var(&replaceSpecs, "replace", "regex find/replace applied to each file's Markdown output, as PATTERN=>REPLACEMENT (repeatable, applied in order given)")
 	flag.StringVar(&rulesFile, "rules-file", "", "JSON file of [{\"pattern\":\"...\",\"replace\":\"...\"}, ...] rules, applied before -replace flags")
 	flag.BoolVar(&verbose, "v", false, "verbose output")
+	flag.BoolVar(&showVersion, "version", false, "print version information and check for updates")
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "usage: mdify [flags] <input-dir>\n\nflags:\n")
+		fmt.Fprintf(os.Stderr, "usage: mdify [flags] <input-dir>\n       mdify update\n\nflags:\n")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
+
+	if showVersion {
+		selfupdate.PrintVersionCheck(modulePath)
+		return
+	}
 
 	if flag.NArg() != 1 {
 		flag.Usage()
