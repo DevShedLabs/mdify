@@ -11,6 +11,9 @@ layout — handy for feeding a site's content to an LLM.
 
 ```sh
 go install github.com/DevShedLabs/mdify@latest
+
+# or specific version
+go install github.com/DevShedLabs/mdify@v0.0.4
 ```
 
 ## Updating
