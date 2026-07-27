@@ -50,6 +50,29 @@ func TestLists(t *testing.T) {
 	}
 }
 
+func TestListItemDivWrapperWithIcon(t *testing.T) {
+	out := mustConvert(t, `<ul>
+		<li><span class="material-icons" aria-hidden="true">check</span>
+			<div><strong>New File.</strong> Create files from the menu.</div>
+		</li>
+		<li><span class="material-icons" aria-hidden="true">check</span>
+			<div><strong>Inline rename.</strong> Rename in place.</div>
+		</li>
+	</ul>`)
+	want := "- **New File.** Create files from the menu.\n- **Inline rename.** Rename in place.\n"
+	if out != want {
+		t.Errorf("got:\n%q\nwant:\n%q", out, want)
+	}
+}
+
+func TestListItemPWrapper(t *testing.T) {
+	out := mustConvert(t, `<ul><li><p><strong>Bold item.</strong> Some text.</p></li></ul>`)
+	want := "- **Bold item.** Some text.\n"
+	if out != want {
+		t.Errorf("got:\n%q\nwant:\n%q", out, want)
+	}
+}
+
 func TestCodeBlock(t *testing.T) {
 	out := mustConvert(t, "<pre><code>line1\nline2</code></pre>")
 	want := "```\nline1\nline2\n```\n"

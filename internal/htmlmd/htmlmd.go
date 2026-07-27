@@ -244,7 +244,7 @@ func (c *converter) walk(n *html.Node) {
 			}
 			c.writeString(indent + marker)
 			c.atLineStart = false
-			c.walkChildren(li)
+			c.walkListItem(li)
 			s := strings.TrimRight(c.buf.String(), " \t")
 			c.buf.Reset()
 			c.buf.WriteString(s)
@@ -274,6 +274,47 @@ func (c *converter) walk(n *html.Node) {
 	default:
 		c.walkChildren(n)
 	}
+}
+
+// walkListItem renders a <li>'s content. CMS/editor markup commonly wraps
+// the item's real text in a single <p> or <div> — often alongside an icon
+// <span> that gets filtered out (see DefaultIconSelectors) — leaving that
+// wrapper as the only meaningful child. Without unwrapping it, the wrapper's
+// own block-level rendering (blockGap) would split the bullet marker,
+// content, and next bullet onto separate blank-line-separated blocks
+// instead of a single tight list line.
+func (c *converter) walkListItem(li *html.Node) {
+	kids := c.meaningfulChildren(li)
+	if len(kids) > 0 && kids[0].Type == html.ElementNode && (kids[0].Data == "p" || kids[0].Data == "div") {
+		c.walkChildren(kids[0])
+		for _, k := range kids[1:] {
+			c.walk(k)
+		}
+		return
+	}
+	c.walkChildren(li)
+}
+
+// meaningfulChildren returns n's children, skipping whitespace-only text
+// nodes, comments, and elements that would be dropped from output anyway.
+func (c *converter) meaningfulChildren(n *html.Node) []*html.Node {
+	var out []*html.Node
+	for ch := n.FirstChild; ch != nil; ch = ch.NextSibling {
+		switch ch.Type {
+		case html.TextNode:
+			if strings.TrimSpace(ch.Data) == "" {
+				continue
+			}
+		case html.CommentNode, html.DoctypeNode:
+			continue
+		case html.ElementNode:
+			if c.dropped(ch) {
+				continue
+			}
+		}
+		out = append(out, ch)
+	}
+	return out
 }
 
 func (c *converter) wrapInline(n *html.Node, open, close string) {
