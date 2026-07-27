@@ -12,6 +12,8 @@ import (
 	"os/exec"
 	"runtime/debug"
 	"time"
+
+	"golang.org/x/mod/semver"
 )
 
 // CurrentVersion returns the module version Go recorded when this binary
@@ -76,14 +78,29 @@ func PrintVersionCheck(modulePath string) {
 		return
 	}
 
-	switch {
-	case cur == "dev":
-		fmt.Printf("latest published version: %s\n", latest)
-	case cur == latest:
-		fmt.Println("up to date")
-	default:
-		fmt.Printf("update available: %s -> %s (run `mdify update`)\n", cur, latest)
+	fmt.Println(versionCheckMessage(cur, latest))
+}
+
+// versionCheckMessage compares cur (the running binary's version) against
+// latest (what the module proxy currently reports), using real semver
+// ordering rather than string inequality — so a proxy that hasn't yet
+// indexed a just-published tag (briefly reporting an older "latest" than
+// what's already installed) can never be misreported as an available
+// "update" to an older version.
+func versionCheckMessage(cur, latest string) string {
+	if cur == "dev" {
+		return fmt.Sprintf("latest published version: %s", latest)
 	}
+	if !semver.IsValid(cur) || !semver.IsValid(latest) {
+		if cur == latest {
+			return "up to date"
+		}
+		return fmt.Sprintf("current: %s, latest published: %s", cur, latest)
+	}
+	if semver.Compare(cur, latest) < 0 {
+		return fmt.Sprintf("update available: %s -> %s (run `mdify update`)", cur, latest)
+	}
+	return "up to date"
 }
 
 // Update shells out to `go install <modulePath>@latest`, requiring a Go
