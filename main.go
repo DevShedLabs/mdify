@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"mdify/internal/htmlmd"
-	"mdify/internal/phpstrip"
-	"mdify/internal/rewrite"
-	"mdify/internal/walker"
+	"github.com/DevShedLabs/mdify/internal/htmlmd"
+	"github.com/DevShedLabs/mdify/internal/phpstrip"
+	"github.com/DevShedLabs/mdify/internal/rewrite"
+	"github.com/DevShedLabs/mdify/internal/walker"
 )
 
 // repeatableFlag collects every occurrence of a flag passed multiple times,
